@@ -1,134 +1,174 @@
-#  Iris Scan Authentication System (PyTorch)
+# Iris Scan Authentication using Siamese Networks
 
-A **deep learning–based iris biometric authentication system** built using **PyTorch and OpenCV**.  
-This project captures iris images via a webcam, converts them into **secure numerical embeddings**, and verifies identity using **cosine similarity**.
+An end-to-end biometric iris authentication system built using PyTorch, Siamese neural networks, and webcam-based image capture.
+The system supports user enrollment, template storage, and distance-based verification for secure identity authentication.
 
----
+ Motivation
 
-##  Project Overview
+Traditional password-based authentication systems suffer from:
 
-Biometric systems provide a secure alternative to passwords.  
-Among biometrics, **iris patterns are highly unique, stable, and difficult to forge**.
+Weak security
 
-This project implements a **modular, scalable MVP** for iris-based authentication using:
-- Convolutional Neural Networks (CNNs)
-- Real-time image capture
-- Embedding-based verification
+Password reuse
 
----
+Easy spoofing
 
-##  Features
+Biometric authentication, especially iris recognition, offers:
 
--  Real-time iris image capture using webcam  
--  Deep learning feature extraction using **ResNet18 (PyTorch)**  
--  128-dimensional biometric embeddings  
--  Secure template storage (no raw images used for matching)  
--  Cosine similarity–based verification  
--  Clean, modular project structure  
--  Ready for research, internships, and competitions  
+High uniqueness
 
----
+Long-term stability
 
-##  Project Structure
-     iris_scan_project/
-├── data/
-│ ├── raw/ # Captured iris images
-│ └── templates/ # Stored iris embeddings (.pkl)
-├── models/
-│ ├── iris_net.py # CNN model definition
-│ └── init.py
+Strong resistance to impersonation
+
+This project implements a deep learning–based iris verification system using metric learning.
+
+ Core Idea
+
+Instead of classifying users directly, we use a Siamese Network to learn an embedding space where:
+
+Iris images from the same person are close
+
+Iris images from different people are far apart
+
+Authentication is done by comparing embedding distances.
+
+ System Architecture
+Webcam → Iris Image → CNN Encoder → Embedding Vector
+                                     ↓
+                            Stored User Templates
+                                     ↓
+                           Distance Comparison
+                                     ↓
+                           Access Granted / Denied
+
+ Project Structure
+iris_scan_project/
 ├── src/
-│ ├── capture/ # Webcam capture logic
-│ ├── preprocessing/ # Image preprocessing
-│ ├── inference/ # Embedding generation
-│ ├── utils/ # Similarity functions
-│ └── init.py
+│   ├── capture/          # Webcam image capture
+│   ├── preprocessing/   # Image preprocessing
+│   ├── inference/       # Embedding extraction
+│   └── training/        # Siamese network & dataset
+│
 ├── scripts/
-│ ├── enroll_user.py # User enrollment
-│ └── verify_user.py # User verification
+│   ├── enroll_user.py   # User enrollment
+│   ├── verify_user.py   # User authentication
+│
+├── data/
+│   ├── raw/             # Raw iris images (ignored in Git)
+│   ├── templates/       # Stored embeddings (ignored in Git)
+│
+├── models/
+│   └── siamese_iris.pth # Trained model (ignored in Git)
+│
 ├── requirements.txt
+├── .gitignore
 └── README.md
 
----
 
-##  Tech Stack
+ Note: Raw biometric data and templates are intentionally excluded from Git for privacy and ethical reasons.
 
-| Component | Technology |
-|--------|------------|
-| Language | Python |
-| Deep Learning | PyTorch |
-| Vision | OpenCV |
-| Model | ResNet18 |
-| Similarity | Cosine Similarity |
-| Hardware | Standard Webcam |
+Tech Stack
 
----
+Python 3
 
-##  Installation & Setup
+PyTorch
 
-###  Clone the repository
-```bash
-git clone <your-repo-link>
-cd iris_scan_project
+Torchvision
 
-### Install dependencies
-```bash
+OpenCV
+
+NumPy
+
+Pillow
+
+ Model Details
+
+Architecture: Siamese Network
+
+Backbone: ResNet-18 (pretrained)
+
+Loss Function: Contrastive Loss
+
+Distance Metric: Euclidean Distance
+
+Output: Fixed-length iris embedding vector
+
+ Installation
+ Clone the repository
+git clone https://github.com/ddverse-bot/iris-scan-authentication.git
+cd iris-scan-authentication
+
+2️ Install dependencies
 pip install -r requirements.txt
-How to Run
 
- Always run from the project root directory
+ Training the Siamese Network
 
-- Enroll a New User
+Ensure your dataset follows this structure:
+
+data/raw/
+├── user1/
+│   ├── img1.png
+│   ├── img2.png
+├── user2/
+│   ├── img1.png
+│   ├── img2.png
+
+
+Each user must have at least 2 images.
+
+Run training:
+
+python -m src.training.train_siamese
+
+
+Trained model will be saved to:
+
+models/siamese_iris.pth
+
+ User Enrollment
+
+Enroll a new user by capturing iris images via webcam and storing embeddings.
+
 python -m scripts.enroll_user
 
 
-Steps:
+Output:
 
--Enter a user ID (e.g., user1)
--Webcam opens
--Look straight at the camera
--Press S to capture iris
--Iris embedding is saved securely
+data/templates/<user_id>.pkl
 
-Verify a User
+
+Each user can have multiple enrollment samples.
+
+ User Verification
+
+Verify a user by capturing a live iris image and comparing it with stored templates.
+
 python -m scripts.verify_user
 
 
-Steps:
+Decision is based on a distance threshold:
 
-Enter the same user ID
+Distance < threshold →  Access Granted
 
-Webcam opens again
+Distance ≥ threshold →  Access Denied
 
-Press S
+ Evaluation (Planned)
 
-Similarity score is computed
+Future improvements include:
 
-Access is granted or denied
+FAR (False Accept Rate)
 
- Authentication Logic
+FRR (False Reject Rate)
 
-Each iris scan is converted into a 128-D normalized embedding
+ROC curve analysis
 
-Matching is done using cosine similarity
+Threshold optimization
 
-Threshold:
+Security & Ethics
 
-similarity > 0.85 → Authentication Success
+No biometric data is uploaded to GitHub
 
- Security Note
+Templates are stored locally
 
-Raw iris images are not used for matching
-
-Only numerical embeddings are stored
-
-This reduces risk of biometric data leakage
-
- Limitations (MVP)
-
-Basic preprocessing (no precise iris segmentation yet)
-
-No anti-spoofing (photo/video attack detection)
-
-Accuracy depends on lighting and camera quality
-
+System designed for educational & research purposes only

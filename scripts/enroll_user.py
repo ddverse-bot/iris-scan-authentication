@@ -1,5 +1,8 @@
 import pickle
 import os
+import sys
+sys.path.append(".")
+
 from src.capture.webcam_capture import capture_image
 from src.inference.embed import get_embedding
 
@@ -14,7 +17,19 @@ embedding = get_embedding(image_path)
 
 os.makedirs("data/templates", exist_ok=True)
 
-with open(f"data/templates/{user_id}.pkl", "wb") as f:
-    pickle.dump(embedding, f)
+template_path = f"data/templates/{user_id}.pkl"
+
+# Load existing embeddings if user already exists
+if os.path.exists(template_path):
+    with open(template_path, "rb") as f:
+        embeddings = pickle.load(f)
+else:
+    embeddings = []
+
+embeddings.append(embedding)
+
+with open(template_path, "wb") as f:
+    pickle.dump(embeddings, f)
 
 print("✅ User enrolled successfully")
+print(f"Total samples for {user_id}: {len(embeddings)}")

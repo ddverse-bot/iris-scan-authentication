@@ -1,24 +1,41 @@
 import pickle
+import sys
+import os
+import numpy as np
+
+sys.path.append(".")
+
 from src.capture.webcam_capture import capture_image
 from src.inference.embed import get_embedding
-from src.utils.similarity import cosine_similarity
 
 user_id = input("Enter User ID to verify: ")
 
-image_path = capture_image("temp")
+template_path = f"data/templates/{user_id}.pkl"
+if not os.path.exists(template_path):
+    print("❌ User not enrolled")
+    exit()
+
+image_path = capture_image("verify")
 if image_path is None:
     print("Verification cancelled")
     exit()
 
-test_embedding = get_embedding(image_path)
+query_embedding = get_embedding(image_path)
 
-with open(f"data/templates/{user_id}.pkl", "rb") as f:
-    stored_embedding = pickle.load(f)
+with open(template_path, "rb") as f:
+    stored_embeddings = pickle.load(f)
 
-score = cosine_similarity(stored_embedding, test_embedding)
-print("Similarity score:", score)
+distances = [
+    np.linalg.norm(query_embedding - emb)
+    for emb in stored_embeddings
+]
 
-if score > 0.85:
-    print("✅ AUTHENTICATION SUCCESS")
+min_dist = min(distances)
+THRESHOLD = 0.8  # tune later
+
+print(f"Min distance: {min_dist:.4f}")
+
+if min_dist < THRESHOLD:
+    print("✅ ACCESS GRANTED")
 else:
-    print("❌ AUTHENTICATION FAILED")
+    print("❌ ACCESS DENIED")
